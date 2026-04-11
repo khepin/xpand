@@ -2,15 +2,23 @@ import CoreGraphics
 import Foundation
 
 final class KeyListener {
-    private let triggers: [String]
-    private let expander: Expander
+    private var triggers: [String]
+    private var expander: Expander
     private var buffer: String = ""
-    private let maxBufferLength: Int
+    private var maxBufferLength: Int
 
     init(triggers: [String], expander: Expander) {
         self.triggers = triggers
         self.expander = expander
         self.maxBufferLength = triggers.map(\.count).max() ?? 32
+    }
+
+    func reload(triggers: [String], expander: Expander) {
+        self.triggers = triggers
+        self.expander = expander
+        self.maxBufferLength = triggers.map(\.count).max() ?? 32
+        self.buffer = ""
+        print("xpand: reloaded (\(triggers.count) triggers loaded)")
     }
 
     func start() -> Bool {

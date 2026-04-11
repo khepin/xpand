@@ -55,15 +55,38 @@ if let sp = soundPath {
     print("xpand: warning: thunk.wav not found, running without sound")
 }
 
-// --- Handle SIGINT ---
+// --- Reload helper ---
+func reloadConfig() {
+    do {
+        let newEngine = try JSEngine(configPath: configPath)
+        let newTriggers = newEngine.triggers
+        guard !newTriggers.isEmpty else {
+            fputs("xpand: reload skipped — no triggers found in config\n", stderr)
+            return
+        }
+        let newExpander = Expander(engine: newEngine, soundPath: soundPath)
+        listener.reload(triggers: newTriggers, expander: newExpander)
+    } catch {
+        fputs("xpand: reload failed: \(error)\n", stderr)
+    }
+}
+
+// --- Handle signals ---
 signal(SIGINT) { _ in
     print("\nxpand: bye")
     exit(0)
+}
+signal(SIGHUP) { _ in
+    DispatchQueue.main.async { reloadConfig() }
 }
 
 // --- Start listening ---
 let expander = Expander(engine: engine, soundPath: soundPath)
 let listener = KeyListener(triggers: triggers, expander: expander)
+
+// --- Watch config for changes ---
+let watcher = ConfigWatcher(configPath: configPath) { reloadConfig() }
+watcher.start()
 
 if !listener.start() {
     fputs("xpand: failed to create event tap — is Accessibility permission granted?\n", stderr)
