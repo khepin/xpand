@@ -47,6 +47,11 @@ final class Expander {
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
 
+        // Small delay to ensure the pasteboard server has propagated the new content
+        // before the target app processes the Cmd+V. Without this, the first expansion
+        // after a period of inactivity can paste stale clipboard contents.
+        usleep(10_000) // 10ms
+
         // Inject Cmd+V
         let src = CGEventSource(stateID: .hidSystemState)
         // keycode 9 = 'v'
