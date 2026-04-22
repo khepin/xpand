@@ -31,12 +31,15 @@ final class Expander {
     }
 
     private func injectBackspaces(count: Int) {
-        let src = CGEventSource(stateID: .hidSystemState)
-        for _ in 0..<count {
+        let src = CGEventSource(stateID: .combinedSessionState)
+        for i in 0..<count {
             let down = CGEvent(keyboardEventSource: src, virtualKey: 0x33, keyDown: true) // 0x33 = delete/backspace
             let up = CGEvent(keyboardEventSource: src, virtualKey: 0x33, keyDown: false)
             down?.post(tap: .cghidEventTap)
             up?.post(tap: .cghidEventTap)
+            if i < count - 1 {
+                usleep(2_000) // 2ms between backspaces
+            }
         }
     }
 
@@ -53,7 +56,7 @@ final class Expander {
         usleep(10_000) // 10ms
 
         // Inject Cmd+V
-        let src = CGEventSource(stateID: .hidSystemState)
+        let src = CGEventSource(stateID: .combinedSessionState)
         // keycode 9 = 'v'
         let down = CGEvent(keyboardEventSource: src, virtualKey: 9, keyDown: true)
         let up = CGEvent(keyboardEventSource: src, virtualKey: 9, keyDown: false)
